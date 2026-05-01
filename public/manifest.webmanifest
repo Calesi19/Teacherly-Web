@@ -1,0 +1,18 @@
+{
+  "name": "Teacherly",
+  "short_name": "Teacherly",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "A mobile teacher dashboard for students, attendance, and assignments.",
+  "icons": [
+    {
+      "src": "./pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
