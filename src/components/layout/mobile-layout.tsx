@@ -25,7 +25,7 @@ export function MobileLayout() {
       </main>
 
       {/* Fixed Bottom Tab Bar */}
-      <nav className="glass-3 fixed right-0 bottom-0 left-0 z-50 bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
+      <nav className="glass-3 fixed right-0 bottom-0 left-0 z-50 bg-background/80 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] backdrop-blur-md">
         <div className="grid h-16 grid-cols-5 items-center px-1">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
