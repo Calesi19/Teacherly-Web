@@ -1,6 +1,6 @@
 import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom"
 import { useState } from "react"
-import { ArrowLeft, MoreHorizontal, Search } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Search, X } from "lucide-react"
 import { MobileLayout } from "@/components/layout/mobile-layout"
 import { StudentsPage } from "@/pages/students"
 import { StudentProfilePage } from "@/pages/students/student-profile"
@@ -80,6 +80,11 @@ const assignments = [
     maxScore: 75,
     type: "Project",
   },
+]
+
+const assignmentCourses = [
+  "All",
+  ...Array.from(new Set(assignments.map((assignment) => assignment.course))),
 ]
 
 const assignmentTypeBadgeVariant: Record<
@@ -199,31 +204,72 @@ function AttendancePage() {
 }
 
 function AssignmentsPage() {
+  const [isSearching, setIsSearching] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCourse, setSelectedCourse] = useState("All")
 
   const filteredAssignments = assignments.filter(
     (assignment) =>
-      assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.type.toLowerCase().includes(searchTerm.toLowerCase())
+      (selectedCourse === "All" || assignment.course === selectedCourse) &&
+      (assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.type.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
     <div className="relative h-[100svh] overflow-hidden">
-      <header className="glass-1 fixed top-0 right-0 left-0 z-40 flex flex-col gap-4 px-4 py-4 pb-2 backdrop-blur-md">
-        <h1 className="text-xl font-bold tracking-tight">Assignments</h1>
-        <div className="relative">
-          <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search assignments..."
-            className="h-10 rounded-xl border-none bg-muted/50 pl-9 shadow-none focus-visible:ring-0"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <header className="glass-1 fixed top-0 right-0 left-0 z-40 flex flex-col gap-3 px-4 py-4 pb-2 backdrop-blur-md">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            {isSearching ? (
+              <div className="relative">
+                <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
+                <Input
+                  autoFocus
+                  placeholder="Search assignments..."
+                  className="h-10 w-full rounded-xl border-none bg-muted/50 pl-9 pr-3 shadow-none focus-visible:ring-0"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            ) : (
+              <h1 className="text-xl font-bold tracking-tight">Assignments</h1>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={isSearching ? "Close search" : "Search assignments"}
+            onClick={() => setIsSearching((current) => !current)}
+            className="-mr-1 shrink-0"
+          >
+            {isSearching ? <X className="size-5" /> : <Search className="size-5" />}
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {assignmentCourses.map((course) => {
+            const isActive = selectedCourse === course
+
+            return (
+              <button
+                key={course}
+                type="button"
+                onClick={() => setSelectedCourse(course)}
+                className={
+                  isActive
+                    ? "inline-flex h-8 items-center rounded-full bg-foreground px-3 text-[11px] font-medium text-background transition-colors"
+                    : "inline-flex h-8 items-center rounded-full border border-border bg-background px-3 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted"
+                }
+              >
+                {course}
+              </button>
+            )
+          })}
         </div>
       </header>
 
-      <div className="absolute inset-x-0 top-[104px] bottom-20 overflow-y-auto overscroll-y-none">
+      <div className="absolute inset-x-0 top-[152px] bottom-20 overflow-y-auto overscroll-y-none">
         {filteredAssignments.map((assignment, index) => (
           <div key={assignment.id} className="group">
             <Link
