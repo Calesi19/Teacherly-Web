@@ -1,6 +1,6 @@
 import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom"
 import { useState } from "react"
-import { ArrowLeft, MoreHorizontal } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Search } from "lucide-react"
 import { MobileLayout } from "@/components/layout/mobile-layout"
 import { StudentsPage } from "@/pages/students"
 import { StudentProfilePage } from "@/pages/students/student-profile"
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { students } from "@/lib/mock-data"
 
@@ -198,44 +199,64 @@ function AttendancePage() {
 }
 
 function AssignmentsPage() {
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredAssignments = assignments.filter(
+    (assignment) =>
+      assignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      assignment.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      assignment.type.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
-    <div className="flex flex-col">
-      <header className="page-header px-4 py-4 pb-2">
+    <div className="relative h-[100svh] overflow-hidden">
+      <header className="glass-1 fixed top-0 right-0 left-0 z-40 flex flex-col gap-4 px-4 py-4 pb-2 backdrop-blur-md">
         <h1 className="text-xl font-bold tracking-tight">Assignments</h1>
+        <div className="relative">
+          <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search assignments..."
+            className="h-10 rounded-xl border-none bg-muted/50 pl-9 shadow-none focus-visible:ring-0"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </header>
 
-      <div className="mt-2 flex flex-col gap-3 px-4 pb-4">
-        {assignments.map((assignment) => (
-          <Link
-            key={assignment.id}
-            to={`/assignments/${assignment.id}`}
-            className="rounded-xl bg-muted/40 p-4 transition-colors active:bg-muted"
-          >
-            <div className="flex items-start justify-between gap-3">
+      <div className="absolute inset-x-0 top-[104px] bottom-20 overflow-y-auto overscroll-y-none">
+        {filteredAssignments.map((assignment, index) => (
+          <div key={assignment.id} className="group">
+            <Link
+              to={`/assignments/${assignment.id}`}
+              className="flex items-center justify-between gap-3 px-4 py-2.5 transition-colors active:bg-muted/50"
+            >
               <div className="min-w-0">
-                <h2 className="truncate text-sm font-semibold">{assignment.name}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">{assignment.course}</p>
+                <p className="truncate text-[14px] font-medium text-foreground">
+                  {assignment.name}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {assignment.course} · {assignment.date}
+                </p>
               </div>
-              <Badge
-                variant={assignmentTypeBadgeVariant[assignment.type] ?? "outline"}
-                className="shrink-0"
-              >
-                {assignment.type}
-              </Badge>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <p className="text-muted-foreground">Date</p>
-                <p className="mt-0.5 font-medium">{assignment.date}</p>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge
+                  variant={assignmentTypeBadgeVariant[assignment.type] ?? "outline"}
+                >
+                  {assignment.type}
+                </Badge>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {assignment.maxScore} pts
+                </span>
               </div>
-              <div className="text-right">
-                <p className="text-muted-foreground">Max Score</p>
-                <p className="mt-0.5 font-medium">{assignment.maxScore} pts</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+            {index < filteredAssignments.length - 1 && <Separator />}
+          </div>
         ))}
+        {filteredAssignments.length === 0 && (
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+            <p className="text-sm font-medium">No assignments found</p>
+          </div>
+        )}
       </div>
     </div>
   )
