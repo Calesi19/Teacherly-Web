@@ -7,7 +7,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { MobileLayout } from "@/components/layout/mobile-layout";
 import { StudentsPage } from "@/pages/students";
@@ -132,6 +132,40 @@ function getLetterGrade(percent: number | null) {
   }
 
   return "F";
+}
+
+function useKeyboardInset() {
+  const [keyboardInset, setKeyboardInset] = useState(0);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+      return undefined;
+    }
+
+    const update = () => {
+      const inset = Math.max(
+        0,
+        Math.round(window.innerHeight - viewport.height - viewport.offsetTop),
+      );
+
+      setKeyboardInset(inset);
+    };
+
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    window.addEventListener("orientationchange", update);
+
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+      window.removeEventListener("orientationchange", update);
+    };
+  }, []);
+
+  return keyboardInset;
 }
 
 const assignmentTypeBadgeVariant: Record<
@@ -280,7 +314,7 @@ function AssignmentsPage() {
   );
 
   return (
-    <div className="relative h-[100svh] overflow-hidden">
+    <div className="relative h-full overflow-hidden">
       <header className="glass-1 fixed top-0 right-0 left-0 z-40 flex flex-col gap-3 px-4 py-4 pb-2 backdrop-blur-md">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
@@ -381,6 +415,8 @@ function AssignmentGradesPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const assignment = assignments.find((item) => item.id === id);
+  const keyboardInset = useKeyboardInset();
+  const scoreInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [scores, setScores] = useState<Record<string, string>>(() =>
     Object.fromEntries(students.map((student) => [student.id, ""])),
   );
@@ -409,7 +445,7 @@ function AssignmentGradesPage() {
   }
 
   return (
-    <div className="relative h-[100svh] overflow-hidden">
+    <div className="relative h-full overflow-hidden">
       <header className="page-header fixed top-0 right-0 left-0 z-40 flex items-center gap-3 px-4 py-4 pb-2">
         <Button
           variant="ghost"
@@ -429,8 +465,14 @@ function AssignmentGradesPage() {
         </div>
       </header>
 
-      <div className="absolute inset-x-0 top-[76px] bottom-20 overflow-y-auto overscroll-y-none">
-        {students.map((student) => {
+      <div
+        className="absolute inset-x-0 top-[76px] overflow-y-auto overscroll-y-none"
+        style={{
+          bottom: `calc(5rem + env(safe-area-inset-bottom) + ${keyboardInset}px)`,
+          scrollPaddingBottom: `${keyboardInset + 16}px`,
+        }}
+      >
+        {students.map((student, index) => {
           const score = Number(scores[student.id]);
           const meta = studentMeta[student.id];
           const hasScore = scores[student.id] !== "" && Number.isFinite(score);
@@ -443,59 +485,69 @@ function AssignmentGradesPage() {
           const showLetterGrade = assignment.type === "Exam";
 
           return (
-            <div
-              key={student.id}
-              className="flex items-center gap-3 overflow-hidden px-4 py-3"
-            >
-              <div className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">
-                  {student.name}
-                </span>
-                <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] font-medium">
-                  <span className={toneClass}>{percent}</span>
-                  {showLetterGrade && <span className={toneClass}>{letterGrade}</span>}
-                  {meta.late && (
-                    <Badge variant="warning" className="shrink-0 px-2 py-0 text-[10px]">
-                      Late
-                    </Badge>
+            <div key={student.id} className="group">
+              <div
+                className="flex items-center gap-3 overflow-hidden px-4 py-3"
+                onClick={() => {
+                  scoreInputRefs.current[student.id]?.focus()
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">
+                    {student.name}
+                  </span>
+                  <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] font-medium">
+                    <span className={toneClass}>{percent}</span>
+                    {showLetterGrade && (
+                      <span className={toneClass}>{letterGrade}</span>
+                    )}
+                    {meta.late && (
+                      <Badge variant="warning" className="shrink-0 px-2 py-0 text-[10px]">
+                        Late
+                      </Badge>
+                    )}
+                  </div>
+                  {meta.note && (
+                    <p className="mt-1 min-w-0 truncate text-xs text-muted-foreground">
+                      {meta.note}
+                    </p>
                   )}
                 </div>
-                {meta.note && (
-                  <p className="mt-1 min-w-0 truncate text-xs text-muted-foreground">
-                    {meta.note}
-                  </p>
-                )}
-              </div>
 
-              <div className="flex shrink-0 items-center gap-1 text-right">
-                {meta.exempt ? (
-                  <Badge variant="secondary" className="px-2.5 py-1 text-xs">
-                    Exempt
-                  </Badge>
-                ) : (
-                  <div className="flex items-center rounded-full bg-background px-2.5 py-1.5 focus-within:bg-background">
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      max={assignment.maxScore}
-                      disabled={meta.exempt}
-                      value={scores[student.id]}
-                      onChange={(event) =>
-                        setScores((current) => ({
-                          ...current,
-                          [student.id]: event.target.value,
-                        }))
-                      }
-                      className="h-7 w-14 border-none bg-background px-0 text-right text-base font-semibold shadow-none [appearance:textfield] focus-visible:ring-0 disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      aria-label={`Score for ${student.name}`}
-                    />
-                    <span className="ml-1 text-sm font-medium text-muted-foreground">
-                      / {assignment.maxScore}
-                    </span>
-                  </div>
-                )}
+                <div className="flex shrink-0 items-center gap-1 text-right">
+                  {meta.exempt ? (
+                    <Badge variant="secondary" className="px-2.5 py-1 text-xs">
+                      Exempt
+                    </Badge>
+                  ) : (
+                    <div className="flex items-center rounded-full bg-background px-2.5 py-1.5 focus-within:bg-background">
+                      <Input
+                        ref={(node) => {
+                          scoreInputRefs.current[student.id] = node
+                        }}
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        max={assignment.maxScore}
+                        disabled={meta.exempt}
+                        value={scores[student.id]}
+                        onChange={(event) =>
+                          setScores((current) => ({
+                            ...current,
+                            [student.id]: event.target.value,
+                          }))
+                        }
+                        className="h-7 w-14 border-none bg-background px-0 text-right text-xl font-semibold shadow-none [appearance:textfield] focus-visible:ring-0 disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        aria-label={`Score for ${student.name}`}
+                      />
+                      <span className="ml-1 text-sm font-medium text-muted-foreground">
+                        / {assignment.maxScore}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
+              {index < students.length - 1 && <Separator />}
             </div>
           );
         })}
