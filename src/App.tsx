@@ -8,19 +8,12 @@ import {
   useParams,
 } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, MoreVertical, Search, X } from "lucide-react";
+import { ArrowLeft, Search, X } from "lucide-react";
 import { MobileLayout } from "@/components/layout/mobile-layout";
 import { StudentsPage } from "@/pages/students";
 import { StudentProfilePage } from "@/pages/students/student-profile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -391,9 +384,7 @@ function AssignmentGradesPage() {
   const [scores, setScores] = useState<Record<string, string>>(() =>
     Object.fromEntries(students.map((student) => [student.id, ""])),
   );
-  const [studentMeta, setStudentMeta] = useState<
-    Record<string, StudentAssignmentMeta>
-  >(() =>
+  const [studentMeta] = useState<Record<string, StudentAssignmentMeta>>(() =>
     Object.fromEntries(
       students.map((student) => [
         student.id,
@@ -454,22 +445,17 @@ function AssignmentGradesPage() {
           return (
             <div
               key={student.id}
-              className="flex  items-center gap-3 overflow-hidden px-4 py-3"
+              className="flex items-center gap-3 overflow-hidden px-4 py-3"
             >
               <div className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">
                   {student.name}
                 </span>
-                <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-medium">
+                <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] font-medium">
                   <span className={toneClass}>{percent}</span>
-                  {showLetterGrade && (
-                    <span className={toneClass}>{letterGrade}</span>
-                  )}
+                  {showLetterGrade && <span className={toneClass}>{letterGrade}</span>}
                   {meta.late && (
-                    <Badge
-                      variant="warning"
-                      className="shrink-0 px-2 py-0 text-[10px]"
-                    >
+                    <Badge variant="warning" className="shrink-0 px-2 py-0 text-[10px]">
                       Late
                     </Badge>
                   )}
@@ -487,7 +473,7 @@ function AssignmentGradesPage() {
                     Exempt
                   </Badge>
                 ) : (
-                  <div className="flex items-center rounded-full bg-muted/45 px-2.5 py-1.5 focus-within:bg-muted">
+                  <div className="flex items-center rounded-full bg-background px-2.5 py-1.5 focus-within:bg-background">
                     <Input
                       type="number"
                       inputMode="decimal"
@@ -501,73 +487,14 @@ function AssignmentGradesPage() {
                           [student.id]: event.target.value,
                         }))
                       }
-                      className="h-7 w-14 border-none bg-transparent px-0 text-right text-sm font-semibold shadow-none [appearance:textfield] focus-visible:ring-0 disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="h-7 w-14 border-none bg-background px-0 text-right text-base font-semibold shadow-none [appearance:textfield] focus-visible:ring-0 disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       aria-label={`Score for ${student.name}`}
                     />
-                    <span className="ml-1 text-xs font-medium text-muted-foreground">
+                    <span className="ml-1 text-sm font-medium text-muted-foreground">
                       / {assignment.maxScore}
                     </span>
                   </div>
                 )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Options for ${student.name}`}
-                      className="shrink-0"
-                    >
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        const note = window.prompt("Add note", meta.note);
-
-                        if (note === null) return;
-
-                        setStudentMeta((current) => ({
-                          ...current,
-                          [student.id]: {
-                            ...current[student.id],
-                            note: note.trim(),
-                          },
-                        }));
-                      }}
-                    >
-                      Add note
-                    </DropdownMenuItem>
-                    <DropdownMenuCheckboxItem
-                      checked={meta.exempt}
-                      onCheckedChange={(checked) =>
-                        setStudentMeta((current) => ({
-                          ...current,
-                          [student.id]: {
-                            ...current[student.id],
-                            exempt: checked === true,
-                          },
-                        }))
-                      }
-                    >
-                      Exempt from assignment
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={meta.late}
-                      onCheckedChange={(checked) =>
-                        setStudentMeta((current) => ({
-                          ...current,
-                          [student.id]: {
-                            ...current[student.id],
-                            late: checked === true,
-                          },
-                        }))
-                      }
-                    >
-                      Mark assignment late
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           );
