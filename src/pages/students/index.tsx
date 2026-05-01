@@ -38,7 +38,10 @@ export function StudentsPage() {
 
   return (
     <div className="relative h-full overflow-hidden">
-      <header className="glass-1 fixed top-0 right-0 left-0 z-40 flex flex-col gap-4 px-4 py-4 pb-2 backdrop-blur-md">
+      <header
+        className="glass-3 fixed top-0 right-0 border-t-transparent
+        left-0 z-40 flex flex-col gap-4 px-4 py-4 pb-2 backdrop-blur-md"
+      >
         <h1 className="text-xl font-bold tracking-tight">Students</h1>
         <div className="relative">
           <Search className="absolute top-3 left-3 size-4 text-muted-foreground" />
