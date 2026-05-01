@@ -123,14 +123,17 @@
     }
   body {
     @apply bg-background text-foreground;
+    background-color: var(--background);
     overscroll-behavior: none;
     touch-action: manipulation;
     -webkit-touch-callout: none;
     }
   html {
     @apply font-sans;
+    background-color: var(--background);
     overscroll-behavior: none;
     touch-action: manipulation;
+    min-height: 100%;
     }
 
   input, select, textarea {

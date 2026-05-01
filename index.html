@@ -18,6 +18,37 @@
         }
       })(window.location)
     </script>
+    <script type="text/javascript">
+      ;(function () {
+        const storageKey = "theme"
+        const THEME_COLOR = {
+          dark: "#0a0a0a",
+          light: "#ffffff",
+        }
+
+        function getSystemTheme() {
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        }
+
+        const storedTheme = localStorage.getItem(storageKey)
+        const resolvedTheme =
+          storedTheme === "dark" || storedTheme === "light"
+            ? storedTheme
+            : getSystemTheme()
+
+        const root = document.documentElement
+        root.classList.remove("light", "dark")
+        root.classList.add(resolvedTheme)
+        root.style.colorScheme = resolvedTheme
+
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]')
+        if (themeColorMeta) {
+          themeColorMeta.setAttribute("content", THEME_COLOR[resolvedTheme])
+        }
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%pwa-icon.svg" />
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
